@@ -17,7 +17,6 @@ class LineController extends Controller
 	public function webhook (Request $request) {
 		$lineAccessToken = env('LINE_ACCESS_TOKEN', "");
 		$lineChannelSecret = env('LINE_CHANNEL_SECRET', "");
-		Log::debug($request);
 		// 署名のチェック
 		$signature = $request->headers->get(HTTPHeader::LINE_SIGNATURE);
 
@@ -32,6 +31,13 @@ class LineController extends Controller
 		try {
 			// イベント取得
 			$events = $lineBot->parseEventRequest($request->getContent(), $signature);
+			foreach ($events as $event) {
+				$message = $event->getText();
+				$replyToken = $event->getReplyToken();
+				$textMessage = new TextMessageBuilder($message);
+				$lineBot->replyMessage($replyToken, $textMessage);
+			}
+
 		} catch (Exception $e) {
 			// TODO 例外
 			return;
